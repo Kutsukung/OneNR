@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+
+<!-- ★★★ แก้ตรงนี้ที่เดียว: ใส่ลิงก์ /exec ของเว็บแอป (จากปุ่ม Deploy) ★★★ -->
+<title>กลุ่มงานทันตกรรม รพ.นางรอง</title>
+
+<!-- ===== iOS: icon + ชื่อ + โหมดเต็มจอ ===== -->
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ทันตกรรมนางรอง">
+
+<!-- ===== Android/Chrome ===== -->
+<link rel="icon" href="./icon-192.png">
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#014886">
+
+<style>
+  html,body{margin:0;height:100%}
+  body{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;
+    font-family:-apple-system,"Sarabun",system-ui,sans-serif;color:#fff;
+    background:linear-gradient(135deg,#014886 0%,#7E2BA6 55%,#D81E6E 100%);
+  }
+  .logo{width:140px;height:140px;border-radius:32px;background:#fff;padding:10px;box-sizing:border-box;
+        box-shadow:0 10px 30px rgba(0,0,0,.25)}
+  .logo img{width:100%;height:100%;object-fit:contain;border-radius:22px}
+  .t{font-size:18px;font-weight:700;letter-spacing:.3px}
+  .s{font-size:13px;opacity:.85}
+  .spin{width:22px;height:22px;border:3px solid rgba(255,255,255,.35);border-top-color:#fff;
+        border-radius:50%;animation:r .8s linear infinite}
+  @keyframes r{to{transform:rotate(360deg)}}
+  a{color:#fff;font-size:13px;text-decoration:underline;opacity:.9;margin-top:6px}
+</style>
+</head>
+<body>
+  <div class="logo"><img src="./icon-192.png" alt="logo"></div>
+  <div class="t">กลุ่มงานทันตกรรม รพ.นางรอง</div>
+  <div class="spin"></div>
+  <div class="s">กำลังเปิดแอป…</div>
+  <a id="manual" href="#">ถ้าไม่เด้งเอง แตะที่นี่</a>
+
+<script>
+  // ★★★ ใส่ลิงก์ /exec ของเว็บแอปตรงนี้ ★★★
+  var EXEC_URL = "https://script.google.com/macros/s/XXXXXXXX/exec";
+
+  document.getElementById('manual').href = EXEC_URL;
+  // เด้งเข้าแอปทันที (replace = ไม่ค้างใน history)
+  setTimeout(function(){ window.location.replace(EXEC_URL); }, 350);
+</script>
+</body>
+</html>
