@@ -61,20 +61,51 @@
   </div>
 
 <script>
+(function(){
   // ลิงก์ /exec ของเว็บแอป
   var EXEC_URL = "https://script.google.com/macros/s/AKfycbx2Uz_wTd2OLFv8ylH0-6FgjEVEjWxlkQKojOarlr9qK3eq9Wg3eR-ac4BCBnns6mPX/exec";
+  var SELF_URL = location.origin + location.pathname;   // URL ของหน้านี้ (ส่งให้แอปไว้ส่ง token กลับ)
+  var TKEY = 'th_token';
 
-  document.getElementById('openBtn').href = EXEC_URL;
+  function getTok(){ try{ return localStorage.getItem(TKEY) || ''; }catch(e){ return ''; } }
+  function setTok(t){ try{ if(t) localStorage.setItem(TKEY, t); }catch(e){} }
+  function clrTok(){ try{ localStorage.removeItem(TKEY); }catch(e){} }
+  // เปิดแอป พร้อมส่ง URL ของ launcher (gh) + ตั๋ว (tok ถ้ามี) ไปด้วย
+  function gotoApp(tok){
+    window.location.replace(EXEC_URL + '?gh=' + encodeURIComponent(SELF_URL) + (tok ? ('&tok=' + encodeURIComponent(tok)) : ''));
+  }
 
-  // เปิดจาก icon หน้าโฮม (standalone) → เด้งเข้าแอปเลย
-  // เปิดใน Safari ปกติ → ไม่เด้ง โชว์ปุ่ม+วิธีเพิ่มลงโฮม
+  var openBtn = document.getElementById('openBtn');
+  openBtn.href = '#';
+  openBtn.onclick = function(e){ e.preventDefault(); gotoApp(getTok()); };
+
+  var hash = location.hash || '';
+
+  // (A) แอปส่งตั๋วกลับมาหลัง login → เก็บไว้บน origin github (ที่ iOS จำได้) แล้วเด้งกลับเข้าแอป
+  if (hash.indexOf('settok=') > -1) {
+    var tk = decodeURIComponent((hash.split('settok=')[1] || '').split('&')[0] || '');
+    if (tk) setTok(tk);
+    history.replaceState(null, '', SELF_URL);
+    gotoApp(getTok());
+    return;
+  }
+
+  // (B) แอปสั่ง logout → ลบตั๋ว แล้วโชว์หน้านี้ (ไม่เด้งอัตโนมัติ ให้กดเข้าใหม่เอง)
+  if (hash.indexOf('clrtok=') > -1) {
+    clrTok();
+    history.replaceState(null, '', SELF_URL);
+    return;
+  }
+
+  // (C) เปิดปกติจาก icon หน้าโฮม (standalone) → เด้งเข้าแอปพร้อมตั๋ว
   var standalone = (window.navigator.standalone === true) ||
                    (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
   if (standalone) {
     document.getElementById('browser').classList.add('hide');
     document.getElementById('launching').classList.remove('hide');
-    setTimeout(function(){ window.location.replace(EXEC_URL); }, 250);
+    setTimeout(function(){ gotoApp(getTok()); }, 250);
   }
+})();
 </script>
 </body>
 </html>
