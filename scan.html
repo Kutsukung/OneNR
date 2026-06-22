@@ -434,6 +434,17 @@ function addLog(color, text){
 function backToApp(){ stopScan(); try{ window.location.href=APP_HOME; }catch(e){ history.back(); } }
 
 /* ---------- เริ่มต้น ---------- */
+// รับ token ที่แอปส่งมาทาง #tok=... (ตอนกดปุ่ม "เปิดเครื่องสแกน") แล้วเก็บไว้บน origin นี้
+(function(){
+  try{
+    var m = (location.hash||'').match(/[#&]tok=([^&]+)/);
+    if(m){
+      var tk = decodeURIComponent(m[1]||'').replace(/[^A-Za-z0-9]/g,'').slice(0,64);
+      if(tk){ try{ localStorage.setItem(TKEY, tk); }catch(e){} }
+      history.replaceState(null,'', location.pathname);
+    }
+  }catch(e){}
+})();
 setMode('patient'); refreshWarn();
 window.addEventListener('pagehide', stopScan);
 </script>
