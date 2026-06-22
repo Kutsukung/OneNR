@@ -19,42 +19,46 @@
   html,body{margin:0;min-height:100%}
   body{background:var(--bg);color:var(--ink);font-family:"Sarabun",-apple-system,system-ui,sans-serif;line-height:1.5}
   .wrap{max-width:480px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
+  .hide{display:none!important}
 
   .top{display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fff;border-bottom:1px solid var(--line)}
   .top img{width:34px;height:34px;border-radius:9px;object-fit:contain;background:#fff}
-  .top .ti{font-size:30px}
   .top-t{font-weight:700;color:var(--navy);font-size:15px;line-height:1.15}
   .top-s{font-size:11.5px;color:var(--muted)}
   .top .sp{flex:1}
   .iconbtn{border:1px solid var(--line);background:#fff;border-radius:10px;width:38px;height:38px;color:var(--navy);font-size:19px;display:flex;align-items:center;justify-content:center;cursor:pointer}
 
-  /* สลับโหมด */
   .seg{display:flex;margin:12px 14px 0;background:#eceef3;border-radius:12px;padding:4px;gap:4px}
   .seg button{flex:1;border:0;background:transparent;border-radius:9px;padding:10px 6px;font:inherit;font-weight:700;font-size:13.5px;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
   .seg button i{font-size:18px}
   .seg button.on{background:#fff;color:var(--navy);box-shadow:0 2px 6px rgba(20,30,60,.10)}
   .seg button.on.patient{color:var(--purple)}
-  .seg button.on.meet{color:var(--navy)}
 
-  /* กล้อง */
   .stagewrap{padding:12px 14px 0}
-  .stage{position:relative;width:100%;aspect-ratio:1/1.18;max-height:62vh;background:#0b0b10;border-radius:18px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+  .stage{position:relative;width:100%;aspect-ratio:1/1.15;max-height:60vh;background:#0b0b10;border-radius:18px;overflow:hidden;display:flex;align-items:center;justify-content:center}
   #reader{width:100%;height:100%}
   #reader video{width:100%!important;height:100%!important;object-fit:cover}
-  .tapstart{position:absolute;inset:0;background:linear-gradient(160deg,#073a6b,#5a1f86 60%,#a8195a);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:24px;cursor:pointer}
+  .tapstart{position:absolute;inset:0;background:linear-gradient(160deg,#073a6b,#5a1f86 60%,#a8195a);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:24px;cursor:pointer;z-index:5}
   .tapstart i{font-size:54px}
   .tapstart .big{font-size:18px;font-weight:700}
   .tapstart .sm{font-size:13px;opacity:.9;max-width:260px}
   .frame{position:absolute;inset:0;pointer-events:none}
-  .frame::before{content:"";position:absolute;left:6%;right:6%;top:28%;bottom:28%;border:2px solid rgba(255,255,255,.85);border-radius:14px;box-shadow:0 0 0 2000px rgba(0,0,0,.28)}
-  .laser{position:absolute;left:8%;right:8%;height:2px;background:linear-gradient(90deg,transparent,#ff3b8d,transparent);top:30%;animation:scan 1.8s ease-in-out infinite;filter:drop-shadow(0 0 6px #ff3b8d)}
-  @keyframes scan{0%,100%{top:30%}50%{top:69%}}
+  .frame::before{content:"";position:absolute;left:5%;right:5%;top:30%;bottom:30%;border:2px solid rgba(255,255,255,.9);border-radius:14px;box-shadow:0 0 0 2000px rgba(0,0,0,.25)}
+  .laser{position:absolute;left:7%;right:7%;height:2px;background:linear-gradient(90deg,transparent,#ff3b8d,transparent);top:32%;animation:scan 1.6s ease-in-out infinite;filter:drop-shadow(0 0 6px #ff3b8d)}
+  @keyframes scan{0%,100%{top:32%}50%{top:67%}}
   .stage.idle .frame,.stage.idle .laser{display:none}
+
+  /* ปุ่มควบคุมกล้อง: ซูม + ไฟฉาย */
+  .camctl{display:flex;align-items:center;gap:9px;margin:10px 14px 0}
+  .camctl .cc{border:1px solid var(--line);background:#fff;border-radius:10px;width:40px;height:40px;font-size:20px;color:var(--navy);display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
+  .camctl .cc:active{background:#f1eef7}
+  .camctl input[type=range]{flex:1;accent-color:var(--purple);height:6px}
+  .camctl .torch.on{background:var(--amber);color:#fff;border-color:var(--amber)}
+  .zlabel{font-size:12px;color:var(--muted);min-width:42px;text-align:right;flex:none}
 
   .hint2{font-size:12.5px;color:var(--muted);text-align:center;margin:10px 14px 0;line-height:1.6}
   .hint2 b{color:var(--magenta)}
 
-  /* การ์ดผลลัพธ์ล่าสุด */
   .result{margin:12px 14px 0;border-radius:16px;padding:15px 16px;color:#fff;display:none;align-items:center;gap:13px;animation:pop .18s ease}
   .result.show{display:flex}
   @keyframes pop{from{transform:scale(.96);opacity:.4}to{transform:scale(1);opacity:1}}
@@ -68,7 +72,6 @@
   .r-warn{background:linear-gradient(135deg,#e08a00,#d8731e)}
   .r-err{background:linear-gradient(135deg,#c0344d,#d81e6e)}
 
-  /* log ล่าสุด */
   .log{margin:14px 14px 20px}
   .log-h{font-size:12px;font-weight:700;color:var(--muted);margin:0 2px 8px;text-transform:uppercase;letter-spacing:.04em}
   .log-row{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:7px}
@@ -77,10 +80,8 @@
   .log-row .lt{font-size:12px;color:var(--muted);flex:none}
   .log-empty{font-size:13px;color:var(--muted);text-align:center;padding:18px}
 
-  /* แถบสถานะล่าง */
   .bar{position:sticky;bottom:0;background:#fff;border-top:1px solid var(--line);padding:10px 14px calc(10px + env(safe-area-inset-bottom));display:flex;gap:10px}
   .bar button{flex:1;border:0;border-radius:12px;padding:13px;font:inherit;font-weight:700;font-size:14.5px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px}
-  .b-stop{background:#fde7ee;color:var(--magenta)}
   .b-start{background:var(--grad);color:#fff}
   .b-back{background:#eef1f6;color:var(--navy);flex:none;width:52px}
 
@@ -133,6 +134,15 @@
     </div>
   </div>
 
+  <!-- ซูม + ไฟฉาย (โผล่เมื่อกล้องรองรับ) -->
+  <div class="camctl hide" id="camctl">
+    <button class="cc" id="zoomOut" title="ซูมออก"><i class="ti ti-minus"></i></button>
+    <input type="range" id="zoom" min="0" max="100" value="15">
+    <button class="cc" id="zoomIn" title="ซูมเข้า"><i class="ti ti-plus"></i></button>
+    <button class="cc torch hide" id="torchBtn" title="ไฟฉาย"><i class="ti ti-bulb"></i></button>
+    <span class="zlabel" id="zlabel">ซูม</span>
+  </div>
+
   <div class="hint2" id="hint">โหมด <b>ผู้ป่วย</b>: สแกนบาร์โค้ด HN · ครั้งที่ 1 = คัดกรอง, 2 = หมอเรียก, 3 = รักษาเสร็จ</div>
 
   <div class="result" id="result">
@@ -161,21 +171,22 @@
 <script>
 /* ============================================================
    เครื่องสแกน (standalone) — รันบน GitHub Pages = หน้าระดับบนสุด
-   กล้องสดจึงทำงานได้ (ต่างจากในกรอบ iframe ของ Apps Script ที่บล็อกกล้อง)
+   กล้องสดจึงทำงานได้ (ต่างจากกรอบ iframe ของ Apps Script ที่บล็อกกล้อง)
+   จูนความไว: ขอวิดีโอ 1080p + โฟกัสต่อเนื่อง + ใช้ BarcodeDetector เนทีฟถ้ามี
+              + แถบซูม/ไฟฉาย เพื่อให้บาร์โค้ดเต็มกรอบโดยไม่ต้องจ่อใกล้
    ============================================================ */
 
 /* >>> แก้ให้ตรงกับ /exec ของเว็บแอปคุณ (อันเดียวกับใน index.html ของ launcher) <<< */
 var EXEC_URL = "https://script.google.com/macros/s/AKfycbx2Uz_wTd2OLFv8ylH0-6FgjEVEjWxlkQKojOarlr9qK3eq9Wg3eR-ac4BCBnns6mPX/exec";
-var APP_HOME = location.origin + location.pathname.replace(/scan\.html?$/i,'') + 'index.html'; // กลับไป launcher
+var APP_HOME = location.origin + location.pathname.replace(/scan\.html?$/i,'') + 'index.html';
+
+var CLIENT_COOLDOWN_MS = 2500;   // กันยิงค่าเดิมซ้ำรัวในเครื่อง (กฎ "ห่างกี่นาที" จริง อยู่ฝั่งเซิร์ฟเวอร์)
 
 var $ = function(id){ return document.getElementById(id); };
-var mode = 'patient';           // 'patient' | 'meet'
-var testMode = false;
-var facing = 'environment';     // กล้องหลัง
+var mode = 'patient', testMode = false, facing = 'environment';
 var qr = null, running = false, starting = false;
-var lastVal = '', lastAt = 0;
-var COOLDOWN = 2500;            // กันสแกนค่าเดิมซ้ำรัว (มิลลิวินาที)
-var audioCtx = null;
+var lastVal = '', lastAt = 0, audioCtx = null;
+var zmin = 0, zmax = 0, zstep = 1, hasZoom = false, torchOn = false;
 var TKEY = 'th_token';
 
 function token(){ try{ return localStorage.getItem(TKEY) || ''; }catch(e){ return ''; } }
@@ -187,170 +198,179 @@ function setMode(m){
   $('mode-patient').classList.toggle('on', m==='patient');
   $('mode-patient').classList.toggle('patient', m==='patient');
   $('mode-meet').classList.toggle('on', m==='meet');
-  $('mode-meet').classList.toggle('meet', m==='meet');
   $('hint').innerHTML = (m==='patient')
     ? 'โหมด <b>ผู้ป่วย</b>: สแกนบาร์โค้ด HN · ครั้งที่ 1 = คัดกรอง, 2 = หมอเรียก, 3 = รักษาเสร็จ'
     : 'โหมด <b>ประชุม</b>: สแกน QR ที่หัวหน้าฝ่ายสร้าง เพื่อเช็คชื่อเข้าประชุม';
-  lastVal = '';
-  hideResult();
+  lastVal = ''; hideResult();
 }
-function toggleTest(){
-  testMode = !testMode;
-  $('testSw').classList.toggle('on', testMode);
-  refreshWarn();
-}
+function toggleTest(){ testMode = !testMode; $('testSw').classList.toggle('on', testMode); refreshWarn(); }
 
-/* ---------- คำเตือน token ---------- */
 function refreshWarn(){
   var w = $('warn');
   if(!token() && !testMode){
     w.classList.add('show');
     w.innerHTML = '<b>ยังไม่ได้เข้าสู่ระบบบนเครื่องนี้</b> — เปิดแอปแล้วล็อกอินก่อน 1 ครั้ง ระบบจึงจะบันทึกได้ (หรือเปิด “โหมดทดสอบ” เพื่อลองกล้องเฉย ๆ)';
-  } else {
-    w.classList.remove('show');
-  }
+  } else w.classList.remove('show');
 }
 
 /* ---------- เสียง/สั่น ---------- */
-function unlockAudio(){
-  try{
-    if(!audioCtx){ var C = window.AudioContext||window.webkitAudioContext; if(C) audioCtx = new C(); }
-    if(audioCtx && audioCtx.state==='suspended') audioCtx.resume();
-  }catch(e){}
-}
+function unlockAudio(){ try{ if(!audioCtx){ var C=window.AudioContext||window.webkitAudioContext; if(C) audioCtx=new C(); } if(audioCtx&&audioCtx.state==='suspended') audioCtx.resume(); }catch(e){} }
 function beep(kind){
   try{
     if(!audioCtx) return;
-    var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    var o=audioCtx.createOscillator(), g=audioCtx.createGain();
     o.connect(g); g.connect(audioCtx.destination);
-    var f = kind==='err'?240 : kind==='warn'?520 : 1180;
-    o.type='sine'; o.frequency.value=f;
-    var t = audioCtx.currentTime;
-    g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(0.25, t+0.01);
-    g.gain.exponentialRampToValueAtTime(0.0001, t+(kind==='err'?0.22:0.13));
+    o.type='sine'; o.frequency.value = kind==='err'?240 : kind==='warn'?520 : 1180;
+    var t=audioCtx.currentTime;
+    g.gain.setValueAtTime(0.0001,t);
+    g.gain.exponentialRampToValueAtTime(0.25,t+0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+(kind==='err'?0.22:0.13));
     o.start(t); o.stop(t+0.25);
   }catch(e){}
 }
 function buzz(ms){ try{ if(navigator.vibrate) navigator.vibrate(ms||40); }catch(e){} }
 
-/* ---------- กล้อง / สแกน ---------- */
+/* ---------- ฟอร์แมตบาร์โค้ดที่รองรับ ---------- */
 function supportedFormats(){
   try{
     var F = Html5QrcodeSupportedFormats;
     return [F.QR_CODE, F.CODE_128, F.CODE_39, F.CODE_93, F.EAN_13, F.EAN_8, F.UPC_A, F.UPC_E, F.ITF, F.CODABAR];
-  }catch(e){ return undefined; } // undefined = รองรับทุกฟอร์แมต
+  }catch(e){ return undefined; }
 }
 function qrboxFn(vw, vh){
-  var w = Math.floor(Math.min(vw, 460) * 0.86);
-  var h = Math.floor(Math.min(vh * 0.5, w * 0.62));
-  return { width:w, height:h };  // กว้างกว่าสูง → อ่านบาร์โค้ดเส้นได้ดี และยังครอบ QR ได้
+  var w = Math.floor(Math.min(vw, 480) * 0.9);
+  var h = Math.floor(Math.min(vh * 0.55, w * 0.72));
+  return { width:w, height:h };
 }
 
+/* ---------- เริ่ม/หยุด ---------- */
 function startScan(){
   if(running || starting) return;
-  starting = true;
-  unlockAudio();
-  refreshWarn();
-  $('tapstart').style.display = 'none';
+  starting = true; unlockAudio(); refreshWarn();
+  $('tapstart').style.display='none';
   $('stage').classList.remove('idle');
   setToggle(true);
 
   try{
-    if(!qr) qr = new Html5Qrcode("reader", { formatsToSupport: supportedFormats(), verbose:false });
-  }catch(e){
-    qr = new Html5Qrcode("reader");
-  }
+    qr = new Html5Qrcode("reader", {
+      formatsToSupport: supportedFormats(),
+      experimentalFeatures: { useBarCodeDetectorIfSupported: true },  // เนทีฟ → เร็วขึ้นมากบน Android
+      verbose: false
+    });
+  }catch(e){ qr = new Html5Qrcode("reader"); }
+
+  var videoConstraints = {
+    facingMode: { ideal: facing },
+    width:  { ideal: 1920 },
+    height: { ideal: 1080 },
+    advanced: [{ focusMode: 'continuous' }]
+  };
+
   qr.start(
-    { facingMode: facing },
-    { fps: 12, qrbox: qrboxFn, aspectRatio: 1.0 },
+    videoConstraints,
+    { fps: 12, qrbox: qrboxFn },
     onHit,
     function(){ /* ไม่พบในเฟรมนี้ — เงียบไว้ */ }
   ).then(function(){
     running = true; starting = false;
+    setTimeout(setupCamCtl, 350);
   }).catch(function(err){
-    starting = false; running = false;
-    setToggle(false);
-    $('tapstart').style.display = 'flex';
-    $('stage').classList.add('idle');
+    starting = false; running = false; setToggle(false);
+    $('tapstart').style.display='flex'; $('stage').classList.add('idle');
     showResult('err','เปิดกล้องไม่ได้','อนุญาตสิทธิ์กล้องในเบราว์เซอร์ แล้วลองใหม่ ('+(err&&err.name||err)+')');
     beep('err');
   });
 }
-
 function stopScan(){
   setToggle(false);
+  $('camctl').classList.add('hide');
   if(!qr){ running=false; return; }
   var inst = qr;
   try{
-    if(inst.isScanning){
-      inst.stop().then(function(){ try{inst.clear();}catch(e){} }).catch(function(){});
-    } else { try{inst.clear();}catch(e){} }
+    if(inst.isScanning) inst.stop().then(function(){ try{inst.clear();}catch(e){} }).catch(function(){});
+    else { try{inst.clear();}catch(e){} }
   }catch(e){}
-  running = false;
-  $('stage').classList.add('idle');
-  $('tapstart').style.display = 'flex';
+  running = false; torchOn = false;
+  $('stage').classList.add('idle'); $('tapstart').style.display='flex';
 }
 function toggleScan(){ running ? stopScan() : startScan(); }
 function setToggle(on){
-  var b = $('toggleBtn');
-  if(on){ b.className='b-start'; b.innerHTML='<i class="ti ti-player-pause"></i> หยุดสแกน'; b.style.background='#fde7ee'; b.style.color='var(--magenta)'; }
-  else  { b.className='b-start'; b.innerHTML='<i class="ti ti-player-play"></i> เริ่มสแกน'; b.style.background=''; b.style.color=''; }
+  var b=$('toggleBtn');
+  b.className='b-start';
+  if(on){ b.innerHTML='<i class="ti ti-player-pause"></i> หยุดสแกน'; b.style.background='#fde7ee'; b.style.color='var(--magenta)'; }
+  else  { b.innerHTML='<i class="ti ti-player-play"></i> เริ่มสแกน'; b.style.background=''; b.style.color=''; }
 }
-
-function flip(){
-  facing = (facing==='environment') ? 'user' : 'environment';
-  if(running){ var was=true; stopScan(); setTimeout(startScan, 250); }
-}
+function flip(){ facing = (facing==='environment')?'user':'environment'; if(running){ stopScan(); setTimeout(startScan,250); } }
 $('flipBtn').onclick = flip;
+
+/* ---------- ซูม / ไฟฉาย ---------- */
+function setupCamCtl(){
+  try{
+    var caps = qr.getRunningTrackCapabilities() || {};
+    hasZoom = !!(caps.zoom && (caps.zoom.max > caps.zoom.min));
+    var hasTorch = !!caps.torch;
+    if(hasZoom){
+      zmin = caps.zoom.min; zmax = caps.zoom.max; zstep = caps.zoom.step || ((zmax-zmin)/100) || 1;
+      $('camctl').classList.remove('hide');
+      $('zoom').value = 15;
+      applyZoomPct(15);
+    } else { $('camctl').classList.add('hide'); }
+    $('torchBtn').classList.toggle('hide', !hasTorch);
+    if(hasTorch) $('camctl').classList.remove('hide');
+  }catch(e){ $('camctl').classList.add('hide'); }
+}
+function applyZoomPct(pct){
+  if(!hasZoom || !qr) return;
+  pct = Math.max(0, Math.min(100, pct));
+  var val = zmin + (zmax - zmin) * (pct/100);
+  if(zstep){ val = Math.round(val/zstep)*zstep; }
+  try{ qr.applyVideoConstraints({ advanced:[{ zoom: val }] }); }catch(e){}
+  $('zlabel').textContent = (Math.round(val*10)/10) + '×';
+}
+$('zoom').addEventListener('input', function(){ applyZoomPct(Number(this.value)); });
+$('zoomIn').onclick  = function(){ var z=Math.min(100, Number($('zoom').value)+10); $('zoom').value=z; applyZoomPct(z); };
+$('zoomOut').onclick = function(){ var z=Math.max(0,   Number($('zoom').value)-10); $('zoom').value=z; applyZoomPct(z); };
+$('torchBtn').onclick = function(){
+  torchOn = !torchOn;
+  $('torchBtn').classList.toggle('on', torchOn);
+  try{ qr.applyVideoConstraints({ advanced:[{ torch: torchOn }] }); }catch(e){}
+};
 
 /* ---------- เมื่อสแกนติด ---------- */
 function onHit(text){
   var now = Date.now();
   text = String(text||'').trim();
   if(!text) return;
-  if(text===lastVal && (now-lastAt)<COOLDOWN) return;  // กันยิงซ้ำรัว
-  lastVal = text; lastAt = now;
-  buzz(45);
-
-  if(mode==='patient') handlePatient(text);
-  else handleMeet(text);
+  if(text===lastVal && (now-lastAt)<CLIENT_COOLDOWN_MS) return;
+  lastVal = text; lastAt = now; buzz(45);
+  if(mode==='patient') handlePatient(text); else handleMeet(text);
 }
-
 function cleanHN(s){ return String(s).trim().replace(/\s+/g,''); }
 
 function handlePatient(raw){
   var hn = cleanHN(raw);
-  if(testMode){
-    beep('ok');
-    showResult('screen','(ทดสอบ) อ่านได้: '+hn, 'โหมดทดสอบ — ไม่บันทึกลงระบบ');
-    addLog('#7E2BA6', 'HN '+hn+' (ทดสอบ)');
-    return;
-  }
+  if(testMode){ beep('ok'); showResult('screen','(ทดสอบ) อ่านได้: '+hn,'โหมดทดสอบ — ไม่บันทึกลงระบบ'); addLog('#7E2BA6','HN '+hn+' (ทดสอบ)'); return; }
   if(!token()){ beep('warn'); refreshWarn(); showResult('warn','ยังไม่ได้เข้าสู่ระบบ','เปิดแอปล็อกอินก่อน หรือเปิดโหมดทดสอบ'); return; }
   jsonp({ action:'scanPatient', hn:hn, token:token() }, function(r){
-    if(!r || !r.ok){ beep('err'); showResult('err','บันทึกไม่สำเร็จ', (r&&r.msg)||'ลองใหม่อีกครั้ง'); return; }
-    var map = {
-      'คัดกรอง':   {cls:'screen', ic:'clipboard-check'},
-      'หมอเรียก':  {cls:'call',   ic:'bell'},
-      'รักษาเสร็จ':{cls:'done',   ic:'circle-check'}
-    };
-    if(r.full){ beep('warn'); showResult('warn','HN '+hn+' ครบ 3 ขั้นแล้ววันนี้', 'คัดกรอง '+ (r.t1||'-') +' · เรียก '+ (r.t2||'-') +' · เสร็จ '+ (r.t3||'-')); addLog('#e08a00','HN '+hn+' (ครบแล้ว)'); return; }
-    var s = map[r.stage] || {cls:'screen', ic:'check'};
+    if(!r || !r.ok){
+      if(r && r.tooSoon){ beep('warn'); showResult('warn','ยังเปลี่ยนขั้นไม่ได้', 'เพิ่งบันทึกขั้น'+(r.lastStage||'')+'ไป '+(r.agoMin||'')+' นาที (กำหนดขั้นต่ำ '+(r.minGap||'')+' นาที)'); addLog('#e08a00','HN '+hn+' (เร็วเกินไป)'); return; }
+      beep('err'); showResult('err','บันทึกไม่สำเร็จ',(r&&r.msg)||'ลองใหม่อีกครั้ง'); return;
+    }
+    if(r.full){ beep('warn'); showResult('warn','HN '+hn+' ครบ 3 ขั้นแล้ววันนี้','คัดกรอง '+(r.t1||'-')+' · เรียก '+(r.t2||'-')+' · เสร็จ '+(r.t3||'-')); addLog('#e08a00','HN '+hn+' (ครบแล้ว)'); return; }
+    var map={ 'คัดกรอง':{cls:'screen',ic:'clipboard-check'}, 'หมอเรียก':{cls:'call',ic:'bell'}, 'รักษาเสร็จ':{cls:'done',ic:'circle-check'} };
+    var s = map[r.stage] || {cls:'screen',ic:'check'};
     beep('ok');
-    showResult(s.cls, 'HN '+hn+' — บันทึก'+r.stage, 'เวลา '+ (r.time||'') + (r.seq?(' · ครั้งที่ '+r.seq):''), s.ic);
+    showResult(s.cls,'HN '+hn+' — บันทึก'+r.stage,'เวลา '+(r.time||'')+(r.seq?(' · ครั้งที่ '+r.seq):''), s.ic);
     var color = s.cls==='done'?'#1e9e5a':(s.cls==='call'?'#014886':'#7E2BA6');
-    addLog(color, 'HN '+hn+' → '+r.stage+' '+(r.time||''));
+    addLog(color,'HN '+hn+' → '+r.stage+' '+(r.time||''));
   });
 }
 
 function parseMeetId(raw){
   raw = String(raw).trim();
-  var m = raw.match(/^MEET:([A-Za-z0-9]+)/i);          // รูปแบบ MEET:xxxx
-  if(m) return m[1];
-  m = raw.match(/[?#&]meet=([A-Za-z0-9]+)/i);           // หรือเป็น URL ...?meet=xxxx / #meet=xxxx
-  if(m) return m[1];
-  if(/^[A-Za-z0-9]{4,24}$/.test(raw)) return raw;       // หรือเป็นรหัสล้วน
+  var m = raw.match(/^MEET:([A-Za-z0-9]+)/i); if(m) return m[1];
+  m = raw.match(/[?#&]meet=([A-Za-z0-9]+)/i);  if(m) return m[1];
+  if(/^[A-Za-z0-9]{4,24}$/.test(raw)) return raw;
   return '';
 }
 function handleMeet(raw){
@@ -364,8 +384,8 @@ function handleMeet(raw){
       beep('err'); showResult('err','เช็คชื่อไม่สำเร็จ',(r&&r.msg)||'ลองใหม่'); return;
     }
     beep('ok');
-    showResult('meet','✓ เช็คชื่อเข้าประชุม', (r.title||'') + ' · ' + (r.time||''), 'user-check');
-    addLog('#014886', (r.name||'เช็คชื่อ')+' → '+(r.title||id));
+    showResult('meet','✓ เช็คชื่อเข้าประชุม',(r.title||'')+' · '+(r.time||''),'user-check');
+    addLog('#014886',(r.name||'เช็คชื่อ')+' → '+(r.title||id));
   });
 }
 
@@ -373,47 +393,38 @@ function handleMeet(raw){
 var jcnt = 0;
 function jsonp(params, cb){
   jcnt++;
-  var name = 'thscan_cb_'+jcnt;
-  var done = false;
-  var sc = document.createElement('script');
-  var timer = setTimeout(function(){ if(done) return; done=true; cleanup(); cb({ok:false,msg:'เซิร์ฟเวอร์ไม่ตอบ (timeout)'}); }, 9000);
+  var name='thscan_cb_'+jcnt, done=false, sc=document.createElement('script');
+  var timer=setTimeout(function(){ if(done)return; done=true; cleanup(); cb({ok:false,msg:'เซิร์ฟเวอร์ไม่ตอบ (timeout)'}); }, 9000);
   function cleanup(){ try{ delete window[name]; }catch(e){ window[name]=undefined; } if(sc.parentNode) sc.parentNode.removeChild(sc); clearTimeout(timer); }
-  window[name] = function(data){ if(done) return; done=true; cleanup(); cb(data); };
-  var q = Object.keys(params).map(function(k){ return encodeURIComponent(k)+'='+encodeURIComponent(params[k]); }).join('&');
-  sc.src = EXEC_URL + '?' + q + '&callback=' + name + '&_=' + Date.now();
-  sc.onerror = function(){ if(done) return; done=true; cleanup(); cb({ok:false,msg:'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้'}); };
+  window[name]=function(data){ if(done)return; done=true; cleanup(); cb(data); };
+  var q=Object.keys(params).map(function(k){ return encodeURIComponent(k)+'='+encodeURIComponent(params[k]); }).join('&');
+  sc.src=EXEC_URL+'?'+q+'&callback='+name+'&_='+Date.now();
+  sc.onerror=function(){ if(done)return; done=true; cleanup(); cb({ok:false,msg:'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้'}); };
   document.head.appendChild(sc);
 }
 
 /* ---------- UI ผลลัพธ์ + log ---------- */
 function showResult(cls, main, sub, icon){
-  var r = $('result');
-  r.className = 'result show r-'+cls;
-  $('r-main').textContent = main;
-  $('r-sub').textContent = sub||'';
-  $('r-ic').innerHTML = '<i class="ti ti-'+(icon||'check')+'"></i>';
+  var r=$('result'); r.className='result show r-'+cls;
+  $('r-main').textContent=main; $('r-sub').textContent=sub||'';
+  $('r-ic').innerHTML='<i class="ti ti-'+(icon||'check')+'"></i>';
 }
 function hideResult(){ $('result').className='result'; }
 function addLog(color, text){
-  var list = $('log-list');
+  var list=$('log-list');
   if(list.querySelector('.log-empty')) list.innerHTML='';
-  var t = new Date(), hh = ('0'+t.getHours()).slice(-2), mm=('0'+t.getMinutes()).slice(-2), ss=('0'+t.getSeconds()).slice(-2);
-  var row = document.createElement('div');
-  row.className='log-row';
-  row.innerHTML = '<span class="dot" style="background:'+color+'"></span><span class="lv"></span><span class="lt">'+hh+':'+mm+':'+ss+'</span>';
-  row.querySelector('.lv').textContent = text;
+  var t=new Date(), hh=('0'+t.getHours()).slice(-2), mm=('0'+t.getMinutes()).slice(-2), ss=('0'+t.getSeconds()).slice(-2);
+  var row=document.createElement('div'); row.className='log-row';
+  row.innerHTML='<span class="dot" style="background:'+color+'"></span><span class="lv"></span><span class="lt">'+hh+':'+mm+':'+ss+'</span>';
+  row.querySelector('.lv').textContent=text;
   list.insertBefore(row, list.firstChild);
   while(list.children.length>10) list.removeChild(list.lastChild);
 }
 
-function backToApp(){
-  stopScan();
-  try{ window.location.href = APP_HOME; }catch(e){ history.back(); }
-}
+function backToApp(){ stopScan(); try{ window.location.href=APP_HOME; }catch(e){ history.back(); } }
 
 /* ---------- เริ่มต้น ---------- */
-setMode('patient');
-refreshWarn();
+setMode('patient'); refreshWarn();
 window.addEventListener('pagehide', stopScan);
 </script>
 </body>
