@@ -244,6 +244,23 @@ function qrboxFn(vw, vh){
 }
 
 /* ---------- เริ่ม/หยุด ---------- */
+function noop(){}
+function makeQr(){
+  try{
+    return new Html5Qrcode("reader", {
+      formatsToSupport: supportedFormats(),
+      experimentalFeatures: { useBarCodeDetectorIfSupported: true },  // เนทีฟ → เร็วขึ้นมากบน Android
+      verbose: false
+    });
+  }catch(e){ return new Html5Qrcode("reader"); }
+}
+function onStarted(){ running = true; starting = false; setTimeout(setupCamCtl, 350); }
+function onStartFail(err){
+  starting = false; running = false; setToggle(false);
+  $('tapstart').style.display='flex'; $('stage').classList.add('idle');
+  showResult('err','เปิดกล้องไม่ได้','อนุญาตสิทธิ์กล้องในเบราว์เซอร์ แล้วลองใหม่ ('+(err&&err.name||err)+')');
+  beep('err');
+}
 function startScan(){
   if(running || starting) return;
   starting = true; unlockAudio(); refreshWarn();
@@ -251,35 +268,28 @@ function startScan(){
   $('stage').classList.remove('idle');
   setToggle(true);
 
-  try{
-    qr = new Html5Qrcode("reader", {
-      formatsToSupport: supportedFormats(),
-      experimentalFeatures: { useBarCodeDetectorIfSupported: true },  // เนทีฟ → เร็วขึ้นมากบน Android
-      verbose: false
-    });
-  }catch(e){ qr = new Html5Qrcode("reader"); }
-
-  var videoConstraints = {
-    facingMode: { ideal: facing },
-    width:  { ideal: 1920 },
-    height: { ideal: 1080 },
-    advanced: [{ focusMode: 'continuous' }]
+  // โหมดความละเอียดสูง: argument แรก = key เดียว, constraint ละเอียดไปไว้ใน config.videoConstraints
+  qr = makeQr();
+  var richCfg = {
+    fps: 12,
+    qrbox: qrboxFn,
+    videoConstraints: {
+      facingMode: { ideal: facing },
+      width:  { ideal: 1920 },
+      height: { ideal: 1080 },
+      advanced: [{ focusMode: 'continuous' }]
+    }
   };
-
-  qr.start(
-    videoConstraints,
-    { fps: 12, qrbox: qrboxFn },
-    onHit,
-    function(){ /* ไม่พบในเฟรมนี้ — เงียบไว้ */ }
-  ).then(function(){
-    running = true; starting = false;
-    setTimeout(setupCamCtl, 350);
-  }).catch(function(err){
-    starting = false; running = false; setToggle(false);
-    $('tapstart').style.display='flex'; $('stage').classList.add('idle');
-    showResult('err','เปิดกล้องไม่ได้','อนุญาตสิทธิ์กล้องในเบราว์เซอร์ แล้วลองใหม่ ('+(err&&err.name||err)+')');
-    beep('err');
-  });
+  qr.start({ facingMode: facing }, richCfg, onHit, noop)
+    .then(onStarted)
+    .catch(function(){
+      // ถอยไปโหมดพื้นฐาน (แบบที่เคยเปิดได้) — สร้าง instance ใหม่กันสถานะค้าง
+      try{ qr.clear(); }catch(e){}
+      qr = makeQr();
+      qr.start({ facingMode: facing }, { fps: 10, qrbox: qrboxFn }, onHit, noop)
+        .then(onStarted)
+        .catch(onStartFail);
+    });
 }
 function stopScan(){
   setToggle(false);
