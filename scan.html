@@ -399,6 +399,7 @@ function handlePatient(raw){
   jsonp({ action:'scanPatient', hn:hn, token:token(), allow:Array.from(stages).join(',') }, function(r){
     if(!r || !r.ok){
       if(r && r.badHN){ beep('err'); showResult('err','ไม่ใช่รหัส HN', r.msg||''); return; }
+      if(r && r.timeout){ beep('warn'); showResult('warn','เซิร์ฟเวอร์ตอบช้า','HN '+hn+' อาจถูกบันทึกแล้ว — ตรวจสอบในระบบก่อนสแกนซ้ำ'); addLog('#e08a00','ตอบช้า HN '+hn); return; }
       if(r && r.stageBlocked){ beep('warn'); showResult('warn','ข้ามคนนี้ — ผิดขั้น', r.msg||''); addLog('#e08a00','ข้าม HN '+hn+' ('+(r.detected||'')+')'); return; }
       if(r && r.tooSoon){ beep('warn'); showResult('warn','ยังเปลี่ยนขั้นไม่ได้','เพิ่งบันทึกขั้น'+(r.lastStage||'')+'ไป '+(r.agoMin||'')+' นาที (ขั้นต่ำ '+(r.minGap||'')+' นาที)'); addLog('#e08a00','HN '+hn+' (เร็วเกินไป)'); return; }
       if(r && r.full){ beep('warn'); showResult('warn','HN '+hn+' ครบ 3 ขั้นแล้ววันนี้','คัดกรอง '+(r.t1||'-')+' · พบแพทย์ '+(r.t2||'-')+' · เสร็จ '+(r.t3||'-')); addLog('#e08a00','HN '+hn+' (ครบแล้ว)'); return; }
@@ -429,6 +430,7 @@ function handleMeet(raw){
   jsonp({ action:'scanMeeting', meet:id, token:token() }, function(r){
     if(!r || !r.ok){
       if(r && r.already){ beep('warn'); showResult('warn','เช็คชื่อแล้ว','คุณเช็คชื่อ “'+(r.title||'')+'” ไปแล้วเมื่อ '+(r.time||'')); addLog('#e08a00','เช็คซ้ำ: '+(r.title||id)); return; }
+      if(r && r.timeout){ beep('warn'); showResult('warn','เซิร์ฟเวอร์ตอบช้า','การเช็คชื่ออาจสำเร็จแล้ว — ตรวจสอบก่อนสแกนซ้ำ'); return; }
       beep('err'); showResult('err','เช็คชื่อไม่สำเร็จ',(r&&r.msg)||'ลองใหม่'); return;
     }
     showResult('meet','✓ เช็คชื่อเข้าประชุม',(r.title||'')+' · '+(r.time||''),'user-check');
@@ -441,7 +443,7 @@ var jcnt = 0;
 function jsonp(params, cb){
   jcnt++;
   var name='thscan_cb_'+jcnt, done=false, sc=document.createElement('script');
-  var timer=setTimeout(function(){ if(done)return; done=true; cleanup(); cb({ok:false,msg:'เซิร์ฟเวอร์ไม่ตอบ (timeout)'}); }, 9000);
+  var timer=setTimeout(function(){ if(done)return; done=true; cleanup(); cb({ok:false,timeout:true,msg:'เซิร์ฟเวอร์ตอบช้าเกินไป'}); }, 15000);
   function cleanup(){ try{ delete window[name]; }catch(e){ window[name]=undefined; } if(sc.parentNode) sc.parentNode.removeChild(sc); clearTimeout(timer); }
   window[name]=function(data){ if(done)return; done=true; cleanup(); cb(data); };
   var q=Object.keys(params).map(function(k){ return encodeURIComponent(k)+'='+encodeURIComponent(params[k]); }).join('&');
