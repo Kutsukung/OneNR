@@ -143,7 +143,7 @@
     <span class="zlabel" id="zlabel">ซูม</span>
   </div>
 
-  <div class="hint2" id="hint">โหมด <b>ผู้ป่วย</b>: สแกนบาร์โค้ด HN · ครั้งที่ 1 = คัดกรอง, 2 = หมอเรียก, 3 = รักษาเสร็จ</div>
+  <div class="hint2" id="hint">โหมด <b>ผู้ป่วย</b>: สแกนบาร์โค้ด HN · ครั้งที่ 1 = คัดกรอง, 2 = พบแพทย์, 3 = รักษาเสร็จ</div>
 
   <div class="result" id="result">
     <div class="ic" id="r-ic"><i class="ti ti-check"></i></div>
@@ -197,7 +197,7 @@ function setMode(m){
   $('mode-patient').classList.toggle('patient', m==='patient');
   $('mode-meet').classList.toggle('on', m==='meet');
   $('hint').innerHTML = (m==='patient')
-    ? 'โหมด <b>ผู้ป่วย</b>: สแกนบาร์โค้ด HN · ครั้งที่ 1 = คัดกรอง, 2 = หมอเรียก, 3 = รักษาเสร็จ'
+    ? 'โหมด <b>ผู้ป่วย</b>: สแกนบาร์โค้ด HN · ครั้งที่ 1 = คัดกรอง, 2 = พบแพทย์, 3 = รักษาเสร็จ'
     : 'โหมด <b>ประชุม</b>: สแกน QR ที่หัวหน้าฝ่ายสร้าง เพื่อเช็คชื่อเข้าประชุม';
   lastVal = ''; hideResult();
 }
@@ -366,7 +366,7 @@ function handlePatient(raw){
       beep('err'); showResult('err','บันทึกไม่สำเร็จ',(r&&r.msg)||'ลองใหม่อีกครั้ง'); return;
     }
     if(r.full){ beep('warn'); showResult('warn','HN '+hn+' ครบ 3 ขั้นแล้ววันนี้','คัดกรอง '+(r.t1||'-')+' · เรียก '+(r.t2||'-')+' · เสร็จ '+(r.t3||'-')); addLog('#e08a00','HN '+hn+' (ครบแล้ว)'); return; }
-    var map={ 'คัดกรอง':{cls:'screen',ic:'clipboard-check'}, 'หมอเรียก':{cls:'call',ic:'bell'}, 'รักษาเสร็จ':{cls:'done',ic:'circle-check'} };
+    var map={ 'คัดกรอง':{cls:'screen',ic:'clipboard-check'}, 'พบแพทย์':{cls:'call',ic:'stethoscope'}, 'รักษาเสร็จ':{cls:'done',ic:'circle-check'} };
     var s = map[r.stage] || {cls:'screen',ic:'check'};
     var sub='เวลา '+(r.time||'')+(r.seq?(' · ครั้งที่ '+r.seq):'')+(r.points?(' · +'+r.points+' แต้ม'):'');
     showResult(s.cls,'HN '+hn+' — บันทึก'+r.stage, sub, s.ic);
