@@ -368,7 +368,8 @@ function handlePatient(raw){
     if(r.full){ beep('warn'); showResult('warn','HN '+hn+' ครบ 3 ขั้นแล้ววันนี้','คัดกรอง '+(r.t1||'-')+' · เรียก '+(r.t2||'-')+' · เสร็จ '+(r.t3||'-')); addLog('#e08a00','HN '+hn+' (ครบแล้ว)'); return; }
     var map={ 'คัดกรอง':{cls:'screen',ic:'clipboard-check'}, 'หมอเรียก':{cls:'call',ic:'bell'}, 'รักษาเสร็จ':{cls:'done',ic:'circle-check'} };
     var s = map[r.stage] || {cls:'screen',ic:'check'};
-    showResult(s.cls,'HN '+hn+' — บันทึก'+r.stage,'เวลา '+(r.time||'')+(r.seq?(' · ครั้งที่ '+r.seq):''), s.ic);
+    var sub='เวลา '+(r.time||'')+(r.seq?(' · ครั้งที่ '+r.seq):'')+(r.points?(' · +'+r.points+' แต้ม'):'');
+    showResult(s.cls,'HN '+hn+' — บันทึก'+r.stage, sub, s.ic);
     var color = s.cls==='done'?'#1e9e5a':(s.cls==='call'?'#014886':'#7E2BA6');
     addLog(color,'HN '+hn+' → '+r.stage+' '+(r.time||''));
   });
