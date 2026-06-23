@@ -85,11 +85,14 @@
   .b-start{background:var(--grad);color:#fff}
   .b-back{background:#eef1f6;color:var(--navy);flex:none;width:52px}
 
-  .testtog{display:flex;align-items:center;justify-content:center;gap:8px;margin:12px 14px 0;font-size:13px;color:var(--muted)}
-  .switch{position:relative;width:42px;height:24px;background:#cdd2db;border-radius:999px;transition:.15s;flex:none;cursor:pointer}
-  .switch.on{background:var(--purple)}
-  .switch::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:.15s}
-  .switch.on::after{left:21px}
+  .stagesel{margin:10px 14px 0}
+  .stagesel-lbl{font-size:12px;color:var(--muted);margin:0 2px 6px}
+  .chips{display:flex;gap:8px}
+  .chip{flex:1;border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:9px 4px;font:inherit;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer}
+  .chip.on{border-color:var(--purple);background:#f6eefb;color:var(--purple)}
+  .r-pending{background:linear-gradient(135deg,#5b6472,#828c9b)}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .r-pending .ic i{animation:spin .8s linear infinite}
 
   .warnbox{margin:12px 14px 0;background:#fff7ed;border:1px solid #f3d9b0;color:#8a5a00;border-radius:12px;padding:11px 13px;font-size:12.5px;line-height:1.6;display:none}
   .warnbox.show{display:block}
@@ -116,9 +119,13 @@
 
   <div class="warnbox" id="warn"></div>
 
-  <div class="testtog">
-    <span>โหมดทดสอบ (ไม่บันทึกลงระบบ)</span>
-    <div class="switch" id="testSw" onclick="toggleTest()"></div>
+  <div class="stagesel" id="stagesel">
+    <div class="stagesel-lbl">บันทึกเฉพาะขั้น (เลือกได้หลายขั้น):</div>
+    <div class="chips">
+      <button class="chip" data-st="screen" onclick="toggleStage('screen')">คัดกรอง</button>
+      <button class="chip" data-st="doctor" onclick="toggleStage('doctor')">พบแพทย์</button>
+      <button class="chip" data-st="done" onclick="toggleStage('done')">รักษาเสร็จ</button>
+    </div>
   </div>
 
   <div class="stagewrap">
@@ -181,13 +188,33 @@ var EXEC_URL = "https://script.google.com/macros/s/AKfycbx2Uz_wTd2OLFv8ylH0-6Fgj
 var CLIENT_COOLDOWN_MS = 2500;   // กันยิงค่าเดิมซ้ำรัวในเครื่อง (กฎ "ห่างกี่นาที" จริง อยู่ฝั่งเซิร์ฟเวอร์)
 
 var $ = function(id){ return document.getElementById(id); };
-var mode = 'patient', testMode = false, facing = 'environment';
+var mode = 'patient', facing = 'environment';
 var qr = null, running = false, starting = false;
 var lastVal = '', lastAt = 0, audioCtx = null;
 var zmin = 0, zmax = 0, zstep = 1, hasZoom = false, torchOn = false;
 var TKEY = 'th_token';
+var STAGEKEY = 'th_scan_stages';
+var stages = loadStages();   // ขั้นที่เครื่องนี้รับสแกน (Set ของ 'screen'/'doctor'/'done')
 
 function token(){ try{ return localStorage.getItem(TKEY) || ''; }catch(e){ return ''; } }
+
+/* ---------- ตัวกรองขั้น (เลือกได้หลายขั้น, จำไว้ต่อเครื่อง) ---------- */
+function loadStages(){
+  try{ var v=localStorage.getItem(STAGEKEY); if(v){ var a=v.split(',').filter(Boolean); if(a.length) return new Set(a); } }catch(e){}
+  return new Set(['screen','doctor','done']);
+}
+function saveStages(){ try{ localStorage.setItem(STAGEKEY, Array.from(stages).join(',')); }catch(e){} }
+function toggleStage(code){
+  if(stages.has(code)){ if(stages.size<=1) return; stages.delete(code); }  // เหลืออย่างน้อย 1 ขั้น
+  else stages.add(code);
+  saveStages(); renderStageChips();
+}
+function renderStageChips(){
+  ['screen','doctor','done'].forEach(function(c){
+    var b=document.querySelector('.chip[data-st="'+c+'"]');
+    if(b) b.classList.toggle('on', stages.has(c));
+  });
+}
 
 /* ---------- โหมด ---------- */
 function setMode(m){
@@ -196,18 +223,18 @@ function setMode(m){
   $('mode-patient').classList.toggle('on', m==='patient');
   $('mode-patient').classList.toggle('patient', m==='patient');
   $('mode-meet').classList.toggle('on', m==='meet');
+  $('stagesel').classList.toggle('hide', m!=='patient');   // ตัวกรองขั้น เฉพาะโหมดผู้ป่วย
   $('hint').innerHTML = (m==='patient')
-    ? 'โหมด <b>ผู้ป่วย</b>: สแกนบาร์โค้ด HN · ครั้งที่ 1 = คัดกรอง, 2 = พบแพทย์, 3 = รักษาเสร็จ'
+    ? 'โหมด <b>ผู้ป่วย</b>: สแกนบาร์โค้ด HN (ตัวเลข 1-6 หลัก) · ครั้งที่ 1=คัดกรอง, 2=พบแพทย์, 3=รักษาเสร็จ'
     : 'โหมด <b>ประชุม</b>: สแกน QR ที่หัวหน้าฝ่ายสร้าง เพื่อเช็คชื่อเข้าประชุม';
   lastVal = ''; hideResult();
 }
-function toggleTest(){ testMode = !testMode; $('testSw').classList.toggle('on', testMode); refreshWarn(); }
 
 function refreshWarn(){
   var w = $('warn');
-  if(!token() && !testMode){
+  if(!token()){
     w.classList.add('show');
-    w.innerHTML = '<b>ยังไม่ได้เข้าสู่ระบบบนเครื่องนี้</b> — เปิดแอปแล้วล็อกอินก่อน 1 ครั้ง ระบบจึงจะบันทึกได้ (หรือเปิด “โหมดทดสอบ” เพื่อลองกล้องเฉย ๆ)';
+    w.innerHTML = '<b>ยังไม่ได้เข้าสู่ระบบบนเครื่องนี้</b> — เปิดแอปแล้วล็อกอินก่อน 1 ครั้ง ระบบจึงจะบันทึกได้';
   } else w.classList.remove('show');
 }
 
@@ -351,21 +378,32 @@ function onHit(text){
   if(!text) return;
   if(text===lastVal && (now-lastAt)<CLIENT_COOLDOWN_MS) return;
   lastVal = text; lastAt = now;
-  buzz(45); beep('ok');                 // เสียง/สั่นทันทีที่อ่านบาร์โค้ดเจอ (ไม่รอเซิร์ฟเวอร์)
+  buzz(45);                              // สั่นทันทีที่อ่านเจอ (เสียงไปตัดสินใน handler)
   if(mode==='patient') handlePatient(text); else handleMeet(text);
 }
 function cleanHN(s){ return String(s).trim().replace(/\s+/g,''); }
 
 function handlePatient(raw){
   var hn = cleanHN(raw);
-  if(testMode){ showResult('screen','(ทดสอบ) อ่านได้: '+hn,'โหมดทดสอบ — ไม่บันทึกลงระบบ'); addLog('#7E2BA6','HN '+hn+' (ทดสอบ)'); return; }
-  if(!token()){ beep('warn'); refreshWarn(); showResult('warn','ยังไม่ได้เข้าสู่ระบบ','เปิดแอปล็อกอินก่อน หรือเปิดโหมดทดสอบ'); return; }
-  jsonp({ action:'scanPatient', hn:hn, token:token() }, function(r){
+  // จำกัด: ต้องเป็น HN = ตัวเลข 1-6 หลักเท่านั้น (อื่น ๆ สแกนไม่ได้)
+  if(!/^[0-9]{1,6}$/.test(hn)){
+    beep('err');
+    showResult('err','ไม่ใช่รหัส HN','สแกนได้เฉพาะรหัส HN ตัวเลข 1-6 หลัก · ที่อ่านได้: '+String(raw).slice(0,24));
+    addLog('#c0344d','ปฏิเสธ: '+String(raw).slice(0,16));
+    return;
+  }
+  if(!token()){ beep('warn'); refreshWarn(); showResult('warn','ยังไม่ได้เข้าสู่ระบบ','เปิดแอปล็อกอินก่อน'); return; }
+  // optimistic UI: โชว์ทันทีที่อ่านเจอ แล้วค่อยอัปเดตเมื่อเซิร์ฟเวอร์ตอบ
+  beep('ok');
+  showResult('pending','✓ HN '+hn+' — กำลังบันทึก…','โปรดรอสักครู่','loader-2');
+  jsonp({ action:'scanPatient', hn:hn, token:token(), allow:Array.from(stages).join(',') }, function(r){
     if(!r || !r.ok){
-      if(r && r.tooSoon){ beep('warn'); showResult('warn','ยังเปลี่ยนขั้นไม่ได้', 'เพิ่งบันทึกขั้น'+(r.lastStage||'')+'ไป '+(r.agoMin||'')+' นาที (กำหนดขั้นต่ำ '+(r.minGap||'')+' นาที)'); addLog('#e08a00','HN '+hn+' (เร็วเกินไป)'); return; }
+      if(r && r.badHN){ beep('err'); showResult('err','ไม่ใช่รหัส HN', r.msg||''); return; }
+      if(r && r.stageBlocked){ beep('warn'); showResult('warn','ข้ามคนนี้ — ผิดขั้น', r.msg||''); addLog('#e08a00','ข้าม HN '+hn+' ('+(r.detected||'')+')'); return; }
+      if(r && r.tooSoon){ beep('warn'); showResult('warn','ยังเปลี่ยนขั้นไม่ได้','เพิ่งบันทึกขั้น'+(r.lastStage||'')+'ไป '+(r.agoMin||'')+' นาที (ขั้นต่ำ '+(r.minGap||'')+' นาที)'); addLog('#e08a00','HN '+hn+' (เร็วเกินไป)'); return; }
+      if(r && r.full){ beep('warn'); showResult('warn','HN '+hn+' ครบ 3 ขั้นแล้ววันนี้','คัดกรอง '+(r.t1||'-')+' · พบแพทย์ '+(r.t2||'-')+' · เสร็จ '+(r.t3||'-')); addLog('#e08a00','HN '+hn+' (ครบแล้ว)'); return; }
       beep('err'); showResult('err','บันทึกไม่สำเร็จ',(r&&r.msg)||'ลองใหม่อีกครั้ง'); return;
     }
-    if(r.full){ beep('warn'); showResult('warn','HN '+hn+' ครบ 3 ขั้นแล้ววันนี้','คัดกรอง '+(r.t1||'-')+' · เรียก '+(r.t2||'-')+' · เสร็จ '+(r.t3||'-')); addLog('#e08a00','HN '+hn+' (ครบแล้ว)'); return; }
     var map={ 'คัดกรอง':{cls:'screen',ic:'clipboard-check'}, 'พบแพทย์':{cls:'call',ic:'stethoscope'}, 'รักษาเสร็จ':{cls:'done',ic:'circle-check'} };
     var s = map[r.stage] || {cls:'screen',ic:'check'};
     var sub='เวลา '+(r.time||'')+(r.seq?(' · ครั้งที่ '+r.seq):'')+(r.points?(' · +'+r.points+' แต้ม'):'');
@@ -385,8 +423,9 @@ function parseMeetId(raw){
 function handleMeet(raw){
   var id = parseMeetId(raw);
   if(!id){ beep('err'); showResult('err','QR ไม่ถูกต้อง','นี่ไม่ใช่ QR ห้องประชุมของระบบ'); return; }
-  if(testMode){ showResult('meet','(ทดสอบ) ห้องประชุม: '+id,'โหมดทดสอบ — ไม่บันทึก'); addLog('#014886','ประชุม '+id+' (ทดสอบ)'); return; }
   if(!token()){ beep('warn'); refreshWarn(); showResult('warn','ยังไม่ได้เข้าสู่ระบบ','เปิดแอปล็อกอินก่อน'); return; }
+  beep('ok');
+  showResult('pending','กำลังเช็คชื่อ…','โปรดรอสักครู่','loader-2');
   jsonp({ action:'scanMeeting', meet:id, token:token() }, function(r){
     if(!r || !r.ok){
       if(r && r.already){ beep('warn'); showResult('warn','เช็คชื่อแล้ว','คุณเช็คชื่อ “'+(r.title||'')+'” ไปแล้วเมื่อ '+(r.time||'')); addLog('#e08a00','เช็คซ้ำ: '+(r.title||id)); return; }
@@ -450,7 +489,7 @@ function backToApp(){
     }
   }catch(e){}
 })();
-setMode('patient'); refreshWarn();
+setMode('patient'); renderStageChips(); refreshWarn();
 window.addEventListener('pagehide', stopScan);
 </script>
 </body>
