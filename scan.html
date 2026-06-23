@@ -178,8 +178,6 @@
 
 /* >>> แก้ให้ตรงกับ /exec ของเว็บแอปคุณ (อันเดียวกับใน index.html ของ launcher) <<< */
 var EXEC_URL = "https://script.google.com/macros/s/AKfycbx2Uz_wTd2OLFv8ylH0-6FgjEVEjWxlkQKojOarlr9qK3eq9Wg3eR-ac4BCBnns6mPX/exec";
-var APP_HOME = location.origin + location.pathname.replace(/scan\.html?$/i,'') + 'index.html';
-
 var CLIENT_COOLDOWN_MS = 2500;   // กันยิงค่าเดิมซ้ำรัวในเครื่อง (กฎ "ห่างกี่นาที" จริง อยู่ฝั่งเซิร์ฟเวอร์)
 
 var $ = function(id){ return document.getElementById(id); };
@@ -352,14 +350,15 @@ function onHit(text){
   text = String(text||'').trim();
   if(!text) return;
   if(text===lastVal && (now-lastAt)<CLIENT_COOLDOWN_MS) return;
-  lastVal = text; lastAt = now; buzz(45);
+  lastVal = text; lastAt = now;
+  buzz(45); beep('ok');                 // เสียง/สั่นทันทีที่อ่านบาร์โค้ดเจอ (ไม่รอเซิร์ฟเวอร์)
   if(mode==='patient') handlePatient(text); else handleMeet(text);
 }
 function cleanHN(s){ return String(s).trim().replace(/\s+/g,''); }
 
 function handlePatient(raw){
   var hn = cleanHN(raw);
-  if(testMode){ beep('ok'); showResult('screen','(ทดสอบ) อ่านได้: '+hn,'โหมดทดสอบ — ไม่บันทึกลงระบบ'); addLog('#7E2BA6','HN '+hn+' (ทดสอบ)'); return; }
+  if(testMode){ showResult('screen','(ทดสอบ) อ่านได้: '+hn,'โหมดทดสอบ — ไม่บันทึกลงระบบ'); addLog('#7E2BA6','HN '+hn+' (ทดสอบ)'); return; }
   if(!token()){ beep('warn'); refreshWarn(); showResult('warn','ยังไม่ได้เข้าสู่ระบบ','เปิดแอปล็อกอินก่อน หรือเปิดโหมดทดสอบ'); return; }
   jsonp({ action:'scanPatient', hn:hn, token:token() }, function(r){
     if(!r || !r.ok){
@@ -369,7 +368,6 @@ function handlePatient(raw){
     if(r.full){ beep('warn'); showResult('warn','HN '+hn+' ครบ 3 ขั้นแล้ววันนี้','คัดกรอง '+(r.t1||'-')+' · เรียก '+(r.t2||'-')+' · เสร็จ '+(r.t3||'-')); addLog('#e08a00','HN '+hn+' (ครบแล้ว)'); return; }
     var map={ 'คัดกรอง':{cls:'screen',ic:'clipboard-check'}, 'หมอเรียก':{cls:'call',ic:'bell'}, 'รักษาเสร็จ':{cls:'done',ic:'circle-check'} };
     var s = map[r.stage] || {cls:'screen',ic:'check'};
-    beep('ok');
     showResult(s.cls,'HN '+hn+' — บันทึก'+r.stage,'เวลา '+(r.time||'')+(r.seq?(' · ครั้งที่ '+r.seq):''), s.ic);
     var color = s.cls==='done'?'#1e9e5a':(s.cls==='call'?'#014886':'#7E2BA6');
     addLog(color,'HN '+hn+' → '+r.stage+' '+(r.time||''));
@@ -386,14 +384,13 @@ function parseMeetId(raw){
 function handleMeet(raw){
   var id = parseMeetId(raw);
   if(!id){ beep('err'); showResult('err','QR ไม่ถูกต้อง','นี่ไม่ใช่ QR ห้องประชุมของระบบ'); return; }
-  if(testMode){ beep('ok'); showResult('meet','(ทดสอบ) ห้องประชุม: '+id,'โหมดทดสอบ — ไม่บันทึก'); addLog('#014886','ประชุม '+id+' (ทดสอบ)'); return; }
+  if(testMode){ showResult('meet','(ทดสอบ) ห้องประชุม: '+id,'โหมดทดสอบ — ไม่บันทึก'); addLog('#014886','ประชุม '+id+' (ทดสอบ)'); return; }
   if(!token()){ beep('warn'); refreshWarn(); showResult('warn','ยังไม่ได้เข้าสู่ระบบ','เปิดแอปล็อกอินก่อน'); return; }
   jsonp({ action:'scanMeeting', meet:id, token:token() }, function(r){
     if(!r || !r.ok){
       if(r && r.already){ beep('warn'); showResult('warn','เช็คชื่อแล้ว','คุณเช็คชื่อ “'+(r.title||'')+'” ไปแล้วเมื่อ '+(r.time||'')); addLog('#e08a00','เช็คซ้ำ: '+(r.title||id)); return; }
       beep('err'); showResult('err','เช็คชื่อไม่สำเร็จ',(r&&r.msg)||'ลองใหม่'); return;
     }
-    beep('ok');
     showResult('meet','✓ เช็คชื่อเข้าประชุม',(r.title||'')+' · '+(r.time||''),'user-check');
     addLog('#014886',(r.name||'เช็คชื่อ')+' → '+(r.title||id));
   });
@@ -431,7 +428,14 @@ function addLog(color, text){
   while(list.children.length>10) list.removeChild(list.lastChild);
 }
 
-function backToApp(){ stopScan(); try{ window.location.href=APP_HOME; }catch(e){ history.back(); } }
+function backToApp(){
+  stopScan();
+  // ใช้ replace + ไปที่ /exec ตรง ๆ (พร้อม gh+tok) เพื่อเอา scan.html ออกจาก history
+  // กันปัญหา "กดถอยแล้วเด้งกลับมาหน้ากล้อง"
+  var gh = location.origin + location.pathname.replace(/scan\.html?$/i,'') + 'index.html';
+  var url = EXEC_URL + '?gh=' + encodeURIComponent(gh) + '&tok=' + encodeURIComponent(token()||'');
+  try{ location.replace(url); }catch(e){ try{ window.top.location.replace(url); }catch(e2){ history.back(); } }
+}
 
 /* ---------- เริ่มต้น ---------- */
 // รับ token ที่แอปส่งมาทาง #tok=... (ตอนกดปุ่ม "เปิดเครื่องสแกน") แล้วเก็บไว้บน origin นี้
