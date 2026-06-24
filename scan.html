@@ -60,6 +60,13 @@
   .hint2 b{color:var(--magenta)}
 
   .result{margin:12px 14px 0;border-radius:16px;padding:15px 16px;color:#fff;display:none;align-items:center;gap:13px;animation:pop .18s ease}
+  .override{margin:8px 14px 0;background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:12px}
+  .override.hide{display:none}
+  .ov-lbl{font-size:13px;color:var(--navy);font-weight:600;margin-bottom:9px}
+  .ov-btns{display:flex;gap:8px}
+  .ov-btns button{flex:1;border:1.5px solid var(--purple);background:#f6eefb;color:var(--purple);border-radius:10px;padding:11px 4px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+  .ov-btns button:active{background:#ecdcf7}
+  .ov-cancel{width:100%;margin-top:8px;border:none;background:transparent;color:var(--muted);font:inherit;font-size:12.5px;padding:6px;cursor:pointer}
   .result.show{display:flex}
   @keyframes pop{from{transform:scale(.96);opacity:.4}to{transform:scale(1);opacity:1}}
   .result .ic{width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;font-size:24px;flex:none}
@@ -160,6 +167,16 @@
     </div>
   </div>
 
+  <div class="override hide" id="override">
+    <div class="ov-lbl" id="ov-lbl">ยืนยันเก็บข้อมูลคนนี้ — เลือกขั้นที่จะบันทึกเอง:</div>
+    <div class="ov-btns">
+      <button onclick="forceStage('screen')">คัดกรอง</button>
+      <button onclick="forceStage('doctor')">พบแพทย์</button>
+      <button onclick="forceStage('done')">รักษาเสร็จ</button>
+    </div>
+    <button class="ov-cancel" onclick="hideOverride()">ยกเลิก</button>
+  </div>
+
   <div class="log">
     <div class="log-h">รายการล่าสุด</div>
     <div id="log-list"><div class="log-empty">ยังไม่มีรายการ</div></div>
@@ -227,7 +244,7 @@ function setMode(m){
   $('hint').innerHTML = (m==='patient')
     ? 'โหมด <b>ผู้ป่วย</b>: สแกนบาร์โค้ด HN (ตัวเลข 1-6 หลัก) · ครั้งที่ 1=คัดกรอง, 2=พบแพทย์, 3=รักษาเสร็จ'
     : 'โหมด <b>ประชุม</b>: สแกน QR ที่หัวหน้าฝ่ายสร้าง เพื่อเช็คชื่อเข้าประชุม';
-  lastVal = ''; hideResult();
+  lastVal = ''; hideResult(); if(typeof hideOverride==='function') hideOverride();
 }
 
 function refreshWarn(){
@@ -384,6 +401,7 @@ function onHit(text){
 function cleanHN(s){ return String(s).trim().replace(/\s+/g,''); }
 
 function handlePatient(raw){
+  hideOverride();
   var hn = cleanHN(raw);
   // จำกัด: ต้องเป็น HN = ตัวเลข 1-6 หลักเท่านั้น (อื่น ๆ สแกนไม่ได้)
   if(!/^[0-9]{1,6}$/.test(hn)){
@@ -400,7 +418,7 @@ function handlePatient(raw){
     if(!r || !r.ok){
       if(r && r.badHN){ beep('err'); showResult('err','ไม่ใช่รหัส HN', r.msg||''); return; }
       if(r && r.timeout){ beep('warn'); showResult('warn','เซิร์ฟเวอร์ตอบช้า','HN '+hn+' อาจถูกบันทึกแล้ว — ตรวจสอบในระบบก่อนสแกนซ้ำ'); addLog('#e08a00','ตอบช้า HN '+hn); return; }
-      if(r && r.stageBlocked){ beep('warn'); showResult('warn','ข้ามคนนี้ — ผิดขั้น', r.msg||''); addLog('#e08a00','ข้าม HN '+hn+' ('+(r.detected||'')+')'); return; }
+      if(r && r.stageBlocked){ beep('warn'); showResult('warn','ข้ามคนนี้ — ผิดขั้น', r.msg||''); showOverride(hn); addLog('#e08a00','ข้าม HN '+hn+' ('+(r.detected||'')+')'); return; }
       if(r && r.tooSoon){ beep('warn'); showResult('warn','ยังเปลี่ยนขั้นไม่ได้','เพิ่งบันทึกขั้น'+(r.lastStage||'')+'ไป '+(r.agoMin||'')+' นาที (ขั้นต่ำ '+(r.minGap||'')+' นาที)'); addLog('#e08a00','HN '+hn+' (เร็วเกินไป)'); return; }
       if(r && r.full){ beep('warn'); showResult('warn','HN '+hn+' ครบ 3 ขั้นแล้ววันนี้','คัดกรอง '+(r.t1||'-')+' · พบแพทย์ '+(r.t2||'-')+' · เสร็จ '+(r.t3||'-')); addLog('#e08a00','HN '+hn+' (ครบแล้ว)'); return; }
       beep('err'); showResult('err','บันทึกไม่สำเร็จ',(r&&r.msg)||'ลองใหม่อีกครั้ง'); return;
@@ -459,6 +477,30 @@ function showResult(cls, main, sub, icon){
   $('r-ic').innerHTML='<i class="ti ti-'+(icon||'check')+'"></i>';
 }
 function hideResult(){ $('result').className='result'; }
+
+/* ---------- override: เลือกขั้นเอง (กรณีลืมสแกนขั้นก่อนหน้า) ---------- */
+var pendingHN = '';
+function showOverride(hn){ pendingHN = hn; $('ov-lbl').textContent = 'ยืนยันเก็บข้อมูล HN '+hn+' — เลือกขั้นที่จะบันทึกเอง:'; $('override').classList.remove('hide'); }
+function hideOverride(){ pendingHN = ''; $('override').classList.add('hide'); }
+function forceStage(code){
+  var hn = pendingHN; hideOverride();
+  if(!hn) return;
+  if(!token()){ beep('warn'); showResult('warn','ยังไม่ได้เข้าสู่ระบบ','เปิดแอปล็อกอินก่อน'); return; }
+  var th = {screen:'คัดกรอง',doctor:'พบแพทย์',done:'รักษาเสร็จ'}[code] || code;
+  beep('ok');
+  showResult('pending','HN '+hn+' — บันทึก'+th+' (เลือกเอง)…','โปรดรอสักครู่','loader-2');
+  jsonp({ action:'scanPatient', hn:hn, token:token(), stage:code }, function(r){
+    if(!r || !r.ok){
+      if(r && r.timeout){ beep('warn'); showResult('warn','เซิร์ฟเวอร์ตอบช้า','HN '+hn+' อาจถูกบันทึกแล้ว — ตรวจสอบก่อนสแกนซ้ำ'); return; }
+      beep('err'); showResult('err','บันทึกไม่สำเร็จ',(r&&r.msg)||'ลองใหม่'); return;
+    }
+    var map={ 'คัดกรอง':{cls:'screen',ic:'clipboard-check'}, 'พบแพทย์':{cls:'call',ic:'stethoscope'}, 'รักษาเสร็จ':{cls:'done',ic:'circle-check'} };
+    var s = map[r.stage] || {cls:'screen',ic:'check'};
+    var sub='เวลา '+(r.time||'')+' · เลือกขั้นเอง'+(r.points?(' · +'+r.points+' แต้ม'):'');
+    showResult(s.cls,'HN '+hn+' — บันทึก'+r.stage+' (เลือกเอง)', sub, s.ic);
+    addLog('#7E2BA6','HN '+hn+' → '+r.stage+' (เลือกเอง) '+(r.time||''));
+  });
+}
 function addLog(color, text){
   var list=$('log-list');
   if(list.querySelector('.log-empty')) list.innerHTML='';
