@@ -242,7 +242,7 @@ function setMode(m){
   $('mode-meet').classList.toggle('on', m==='meet');
   $('stagesel').classList.toggle('hide', m!=='patient');   // ตัวกรองขั้น เฉพาะโหมดผู้ป่วย
   $('hint').innerHTML = (m==='patient')
-    ? 'โหมด <b>ผู้ป่วย</b>: สแกนบาร์โค้ด HN (ตัวเลข 1-6 หลัก) · ครั้งที่ 1=คัดกรอง, 2=พบแพทย์, 3=รักษาเสร็จ'
+    ? 'โหมด <b>ผู้ป่วย</b>: สแกนบาร์โค้ด HN (ตัวเลข 1-9 หลัก) · ครั้งที่ 1=คัดกรอง, 2=พบแพทย์, 3=รักษาเสร็จ'
     : 'โหมด <b>ประชุม</b>: สแกน QR ที่หัวหน้าฝ่ายสร้าง เพื่อเช็คชื่อเข้าประชุม';
   lastVal = ''; hideResult(); if(typeof hideOverride==='function') hideOverride();
 }
@@ -403,13 +403,14 @@ function cleanHN(s){ return String(s).trim().replace(/\s+/g,''); }
 function handlePatient(raw){
   hideOverride();
   var hn = cleanHN(raw);
-  // จำกัด: ต้องเป็น HN = ตัวเลข 1-6 หลักเท่านั้น (อื่น ๆ สแกนไม่ได้)
-  if(!/^[0-9]{1,6}$/.test(hn)){
+  // จำกัด: ต้องเป็น HN = ตัวเลข 1-9 หลักเท่านั้น (อื่น ๆ สแกนไม่ได้)
+  if(!/^[0-9]{1,9}$/.test(hn)){
     beep('err');
-    showResult('err','ไม่ใช่รหัส HN','สแกนได้เฉพาะรหัส HN ตัวเลข 1-6 หลัก · ที่อ่านได้: '+String(raw).slice(0,24));
+    showResult('err','ไม่ใช่รหัส HN','สแกนได้เฉพาะรหัส HN ตัวเลข 1-9 หลัก · ที่อ่านได้: '+String(raw).slice(0,24));
     addLog('#c0344d','ปฏิเสธ: '+String(raw).slice(0,16));
     return;
   }
+  hn = hn.replace(/^0+/,'') || '0';                 // ตัด 0 นำหน้า
   if(!token()){ beep('warn'); refreshWarn(); showResult('warn','ยังไม่ได้เข้าสู่ระบบ','เปิดแอปล็อกอินก่อน'); return; }
   // optimistic UI: โชว์ทันทีที่อ่านเจอ แล้วค่อยอัปเดตเมื่อเซิร์ฟเวอร์ตอบ
   beep('ok');
